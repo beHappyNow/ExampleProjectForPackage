@@ -24,6 +24,7 @@
                 </select>
                 <br/>
                 <br/>
+
                 <div class="form-group">
                     {!! Form::submit('Get info',
                         array('class'=>'btn btn-primary')) !!}
@@ -32,7 +33,9 @@
                 <br/>
                 <br/>
                 @if(isset($resp) && count($resp->results))
-                    <h2>{{$resp->results[0]->formatted_address}}</h2>
+                    @foreach($resp->results as $k=>$result)
+                        <h2>{{$k+1}}. {{$result->formatted_address}}</h2>
+                    @endforeach
                 @elseif( isset($resp) && ($resp->status === "ZERO_RESULTS" || $resp->status === "INVALID_REQUEST"))
                     <h3>Вы ввели некорректные координаты</h3>
                 @elseif( isset($resp) && $resp->status === "OVER_QUERY_LIMIT")
@@ -46,27 +49,47 @@
                 <script type="text/javascript">
 
                     var map;
-                    function initMap() {
-                                @if(isset($resp) && count($resp->results))
-                                    var myLatLng = {lat: {{$resp->results[0]->geometry->location->lat}}  ,
-                            lng: {{$resp->results[0]->geometry->location->lng}} };
-                                @else
-                                    var myLatLng = {lat: 47.8589992 , lng: 35.1049608 };
-                                @endif
-                        map = new google.maps.Map(document.getElementById('map'), {
-                            center: myLatLng,
-                            zoom: 10
-                        });
-                        var marker = new google.maps.Marker({
-                            position: myLatLng,
-                            map: map,
-                            title: 'test'
-                        });
-                    }
 
+                    function initMap() {
+                        var marker;
+                        @if(isset($resp) && count($resp->results))
+                            var mapLatLng = {
+                                lat: {{$resp->results[0]->geometry->location->lat}}  ,
+                                lng: {{$resp->results[0]->geometry->location->lng}}
+                            };
+                            map = new google.maps.Map(document.getElementById('map'), {
+                                center: mapLatLng,
+                                zoom: 10
+                            });
+                            @foreach($resp->results as $result)
+                                var myLatLng = {
+                                    lat: {{$result->geometry->location->lat}}  ,
+                                    lng: {{$result->geometry->location->lng}}
+                                };
+
+                                marker = new google.maps.Marker({
+                                    position: myLatLng,
+                                    map: map,
+                                    title: 'test'
+                                });
+                            @endforeach
+                        @else
+                            var myLatLng = {lat: 47.8589992, lng: 35.1049608};
+                            map = new google.maps.Map(document.getElementById('map'), {
+                                center: myLatLng,
+                                zoom: 10
+                            });
+                            marker = new google.maps.Marker({
+                                position: myLatLng,
+                                map: map,
+                                title: 'test'
+                            });
+                        @endif
+                    }
                 </script>
             </div>
-            <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCec2CwLYjWoT3CqGDm5xjbMKfaaWLSfDc&callback=initMap" async="" defer=""></script>
+            <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCec2CwLYjWoT3CqGDm5xjbMKfaaWLSfDc&callback=initMap"
+                    async="" defer=""></script>
         </div>
     </div>
 @endsection
